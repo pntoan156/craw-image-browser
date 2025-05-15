@@ -53,8 +53,8 @@ app.post('/api/download', async (req, res) => {
     // Pipe archive data to the response
     archive.pipe(res);
 
-    // Create JSON data structure
-    const jsonData = {};
+    // Create CSV data
+    const csvRows = ['id,name,file_name']; // Header row
 
     // Download, convert and add each image to the archive
     for (let i = 0; i < images.length; i++) {
@@ -75,18 +75,15 @@ app.post('/api/download', async (req, res) => {
             // Add to archive
             archive.append(convertedImage, { name: `images/${filename}` });
 
-            // Add to JSON data
-            jsonData[fileId] = {
-                name: productNames[i],
-                file_name: filename
-            };
+            // Add CSV row
+            csvRows.push(`${fileId},"${productNames[i]}",${filename}`);
         } catch (error) {
             console.error(`Error processing image ${i + 1}:`, error.message);
         }
     }
 
-    // Add JSON file to archive
-    archive.append(JSON.stringify(jsonData, null, 2), { name: 'products.json' });
+    // Add CSV file to archive
+    archive.append(csvRows.join('\n'), { name: 'products.csv' });
 
     // Finalize the archive
     await archive.finalize();

@@ -67,6 +67,14 @@
             color: #6c757d;
             word-break: break-all;
         }
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+        }
+        .btn:disabled {
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -113,7 +121,8 @@
                             </label>
                         </div>
                         <button class="btn btn-success" id="downloadBtn" style="display: none;">
-                            <i class="bi bi-download"></i> Tải ảnh đã chọn
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span class="btn-text">Tải ảnh đã chọn</span>
                         </button>
                     </div>
                 </div>
@@ -183,6 +192,21 @@
             updateActionButtons();
         }
 
+        function setLoading(isLoading) {
+            const btn = document.getElementById('downloadBtn');
+            const spinner = btn.querySelector('.spinner-border');
+            const btnText = btn.querySelector('.btn-text');
+            
+            btn.disabled = isLoading;
+            if (isLoading) {
+                spinner.classList.remove('d-none');
+                btnText.textContent = 'Đang tải...';
+            } else {
+                spinner.classList.add('d-none');
+                btnText.textContent = 'Tải ảnh đã chọn';
+            }
+        }
+
         document.getElementById('downloadBtn').addEventListener('click', async () => {
             const selectedProducts = Array.from(selectedImages).map(imgUrl => {
                 const product = allProducts.find(p => p.img === imgUrl);
@@ -194,6 +218,7 @@
 
             if (selectedProducts.length === 0) return;
 
+            setLoading(true);
             try {
                 const response = await fetch('/api/download', {
                     method: 'POST',
@@ -221,6 +246,8 @@
                 }
             } catch (error) {
                 alert('Lỗi: ' + error.message);
+            } finally {
+                setLoading(false);
             }
         });
 
